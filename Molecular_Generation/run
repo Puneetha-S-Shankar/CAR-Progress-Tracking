@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# Single entry point: ./run starts backend + frontend.
+# Terminal-only:      ./run --cli [args]
+#
+# Resilient to project relocation: always invokes the venv's python by
+# absolute path so a stale PATH/activate script can't break startup.
+
+set -euo pipefail
+cd "$(dirname "$0")"
+
+PROJECT_ROOT="$(pwd)"
+VENV_DIR="${PROJECT_ROOT}/.venv"
+VENV_PY="${VENV_DIR}/bin/python"
+VENV_PIP="${VENV_DIR}/bin/pip"
+
+DEFAULT_MODEL="${PROJECT_ROOT}/checkpoints/generator"
+export GENERATOR_CHECKPOINT="${GENERATOR_CHECKPOINT:-$DEFAULT_MODEL}"
+DEFAULT_RL_MODEL="${PROJECT_ROOT}/checkpoints/generator_rl"
+export GENERATOR_RL_CHECKPOINT="${GENERATOR_RL_CHECKPOINT:-$DEFAULT_RL_MODEL}"
+export PYTHONPATH="${PROJECT_ROOT}"
+
+# First-run bootstrap: create venv if missing OR if its python symlink is broken
+# (e.g. project directory was moved after venv creation).
+if [[ ! -x "${VENV_PY}" ]] || [[ ! -x "${VENV_PIP}" ]] || ! "${VENV_PY}" -c "import sys" >/dev/null 2>&1 || ! "${VENV_PIP}" --version >/dev/null 2>&1; then
+  echo "Bootstrapping virtualenv at ${VENV_DIR}"
+  rm -rf "${VENV_DIR}"
+  python3 -m venv "${VENV_DIR}"
+  "${VENV_PIP}" install --upgrade pip --quiet
+fi
+
+# Install backend deps when venv is new or requirements changed.
+REQ_HASH_FILE="${VENV_DIR}/.requirements.sha1"
+CURRENT_REQ_HASH="$(shasum requirements.txt | awk '{print $1}')"
+PREV_REQ_HASH="$(cat "${REQ_HASH_FILE}" 2>/dev/null || true)"
+if [[ "${CURRENT_REQ_HASH}" != "${PREV_REQ_HASH}" ]]; then
+  echo "Installing/updating Python dependencies"
+  "${VENV_PIP}" install -r requirements.txt --quiet
+  printf "%s" "${CURRENT_REQ_HASH}" > "${REQ_HASH_FILE}"
+fi
+
+# Install frontend deps once (or when removed).
+if [[ ! -d frontend/node_modules ]]; then
+  (cd frontend && npm install)
+fi
+
+if [[ ! -f "${GENERATOR_CHECKPOINT}/model.pt" || ! -f "${GENERATOR_CHECKPOINT}/tokenizer.json" ]]; then
+  echo "Missing generator checkpoint at: ${GENERATOR_CHECKPOINT}"
+  echo "Expected files: model.pt and tokenizer.json"
+  exit 1
+fi
+
+if [[ "${1:-}" == "--cli" ]]; then
+  exec "${VENV_PY}" scripts/run_demo.py --model "${GENERATOR_CHECKPOINT}" "${@:2}"
+fi
+
+"${VENV_PY}" -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 &
+UVICORN_PID=$!
+cleanup() {
+  kill "${UVICORN_PID}" 2>/dev/null || true
+}
+trap cleanup EXIT
+
+# Wait for backend to come up; abort fast if uvicorn died.
+for _ in {1..40}; do
+  if ! kill -0 "${UVICORN_PID}" 2>/dev/null; then
+    echo "Backend process exited early; aborting."
+    exit 1
+  fi
+  curl -fsS -o /dev/null http://127.0.0.1:8000/api/v1/health 2>/dev/null && break
+  sleep 0.5
+done
+
+echo "Backend:  http://127.0.0.1:8000"
+echo "Frontend: http://localhost:5173"
+(cd frontend && npm run dev)
