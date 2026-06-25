@@ -1,0 +1,12 @@
+.claude/
+.env
+ui_art_style.md
+
+# Backend
+backend/.venv/
+backend/__pycache__/
+backend/.python-version
+
+# Frontend (additional)
+frontend/AGENTS.md
+frontend/CLAUDE.md
