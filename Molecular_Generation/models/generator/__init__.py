@@ -1,1 +1,0 @@
-"""SafeMolGen generator models."""
