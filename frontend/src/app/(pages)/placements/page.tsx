@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useCallback, useState } from "react";
 import Navbar from "@/components/Navbar";
+import Toast, { type ToastType } from "@/components/Toast";
+import { IconPlus, IconWarning, IconX } from "@/components/Icons";
 import { authClient } from "@/lib/auth-client";
 
 const API = "http://127.0.0.1:8000";
@@ -16,16 +18,6 @@ interface StudentInfo { student_id: number; name: string; school_name: string; p
 
 const STATUS_BADGE: Record<string, string> = { offered: "badge-yellow", accepted: "badge-green", rejected: "badge-red" };
 
-function Toast({ message, type = "accent", onDone }: { message: string; type?: "accent" | "success" | "error"; onDone: () => void }) {
-  useEffect(() => { const t = setTimeout(onDone, 4000); return () => clearTimeout(t); }, [onDone]);
-  return (
-    <div className={`toast toast-${type}`}>
-      <div className="toast-icon">{type === "success" ? "✓" : type === "error" ? "✕" : "◆"}</div>
-      <span>{message}</span>
-    </div>
-  );
-}
-
 export default function PlacementsPage() {
   const [placements, setPlacements] = useState<Placement[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -34,7 +26,7 @@ export default function PlacementsPage() {
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: "accent" | "success" | "error" } | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   const [fUsn, setFUsn] = useState("");
   const [fStudent, setFStudent] = useState<StudentInfo | null>(null);
@@ -128,12 +120,16 @@ export default function PlacementsPage() {
         <div className="app-page-actions animate-fade-in-up stagger-2">
           <span className="app-count-label">{loading ? "Loading…" : `${placements.length} placements recorded`}</span>
           <button className="neo-button btn-primary" style={{ padding: "9px 20px", fontSize: "0.82rem", fontWeight: 700 }} onClick={openModal}>
-            + Add Placement
+            <IconPlus size={15} /> Add Placement
           </button>
         </div>
         <div className="app-divider" />
 
-        {error && <div className="state-error animate-fade-in-up">⚠ {error}</div>}
+        {error && (
+          <div className="state-error animate-fade-in-up" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <IconWarning size={15} /> {error}
+          </div>
+        )}
 
         {loading && (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -187,7 +183,7 @@ export default function PlacementsPage() {
           <div className="modal-panel" style={{ maxWidth: 580 }}>
             <div className="modal-header">
               <h2 className="modal-title">Add Placement</h2>
-              <button className="modal-close" onClick={() => { setModalOpen(false); resetForm(); }}>✕</button>
+              <button className="modal-close" aria-label="Close" onClick={() => { setModalOpen(false); resetForm(); }}><IconX size={15} /></button>
             </div>
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
               {/* USN Lookup */}
@@ -197,7 +193,11 @@ export default function PlacementsPage() {
                   value={fUsn} onChange={(e) => setFUsn(e.target.value)} onBlur={handleUsnBlur} required
                   style={fUsnError ? { borderColor: "var(--error)" } : {}} />
                 {fUsnLoading && <p className="field-error">Looking up student…</p>}
-                {fUsnError && <p className="field-error">⚠ {fUsnError}</p>}
+                {fUsnError && (
+                  <p className="field-error" style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    <IconWarning size={13} /> {fUsnError}
+                  </p>
+                )}
               </div>
 
               {/* Auto-fill */}
@@ -264,7 +264,7 @@ export default function PlacementsPage() {
         </div>
       )}
 
-      <div className="toast-container">{toast && <Toast message={toast.message} type={toast.type} onDone={() => setToast(null)} />}</div>
+      <div className="toast-container">{toast && <Toast message={toast.message} type={toast.type} duration={4000} onDone={() => setToast(null)} />}</div>
     </div>
   );
 }

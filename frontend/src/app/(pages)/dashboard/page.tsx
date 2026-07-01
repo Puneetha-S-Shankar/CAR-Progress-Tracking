@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useCallback, useState } from "react";
 import Navbar from "@/components/Navbar";
+import { IconWarning, IconStar } from "@/components/Icons";
 
 import { authClient } from "@/lib/auth-client";
 
@@ -107,14 +108,18 @@ export default function DashboardPage() {
         {/* Promotion Banner */}
         {!loading && data?.promotion_flag && (
           <div className="promotion-banner animate-fade-in-up stagger-2">
-            <span style={{ fontSize: "1.2rem" }}>★</span>
+            <IconStar size={20} />
             <span style={{ fontWeight: 800, fontSize: "0.95rem", letterSpacing: "0.01em" }}>
               Promotion Recommended — Outstanding placement performance this period.
             </span>
           </div>
         )}
 
-        {error && !loading && <div className="state-error animate-fade-in-up">⚠ {error}</div>}
+        {error && !loading && (
+          <div className="state-error animate-fade-in-up" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <IconWarning size={15} /> {error}
+          </div>
+        )}
 
         {/* Bento Stat Grid */}
         {loading || isPending ? (

@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useCallback, useState } from "react";
 import Navbar from "@/components/Navbar";
+import Toast, { type ToastType } from "@/components/Toast";
+import { IconPlus, IconWarning, IconX } from "@/components/Icons";
 import { authClient } from "@/lib/auth-client";
 
 const API = "http://127.0.0.1:8000";
@@ -13,16 +15,6 @@ interface Drive {
   is_rvce_drive: boolean;
 }
 
-function Toast({ message, type = "accent", onDone }: { message: string; type?: "accent" | "success" | "error"; onDone: () => void }) {
-  useEffect(() => { const t = setTimeout(onDone, 3200); return () => clearTimeout(t); }, [onDone]);
-  return (
-    <div className={`toast toast-${type}`}>
-      <div className="toast-icon">{type === "success" ? "✓" : type === "error" ? "✕" : "◆"}</div>
-      <span>{message}</span>
-    </div>
-  );
-}
-
 const DRIVE_TYPE_LABELS: Record<string, string> = { full_time: "Full Time", internship: "Internship", capstone: "Capstone" };
 const DRIVE_TYPE_BADGE: Record<string, string> = { full_time: "badge-green", internship: "badge-yellow", capstone: "badge-ghost" };
 
@@ -33,7 +25,7 @@ export default function DrivesPage() {
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: "accent" | "success" | "error" } | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   const [fCompany, setFCompany] = useState("");
   const [fDate, setFDate] = useState("");
@@ -105,12 +97,16 @@ export default function DrivesPage() {
         <div className="app-page-actions animate-fade-in-up stagger-2">
           <span className="app-count-label">{loading ? "Loading…" : `${drives.length} drives logged`}</span>
           <button className="neo-button btn-primary" style={{ padding: "9px 20px", fontSize: "0.82rem", fontWeight: 700 }} onClick={openModal}>
-            + Add Drive
+            <IconPlus size={15} /> Add Drive
           </button>
         </div>
         <div className="app-divider" />
 
-        {error && <div className="state-error animate-fade-in-up">⚠ {error}</div>}
+        {error && (
+          <div className="state-error animate-fade-in-up" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <IconWarning size={15} /> {error}
+          </div>
+        )}
 
         {loading && (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -162,7 +158,7 @@ export default function DrivesPage() {
           <div className="modal-panel" style={{ maxWidth: 560 }}>
             <div className="modal-header">
               <h2 className="modal-title">Add Drive</h2>
-              <button className="modal-close" onClick={() => { setModalOpen(false); resetForm(); }}>✕</button>
+              <button className="modal-close" aria-label="Close" onClick={() => { setModalOpen(false); resetForm(); }}><IconX size={15} /></button>
             </div>
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
               <div className="field-group">

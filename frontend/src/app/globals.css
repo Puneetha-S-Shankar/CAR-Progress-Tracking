@@ -8,10 +8,10 @@
   --card: #ffffff;
   --card-border: #000000;
   --card-hover: #f1f1f1;
-  --accent: #8b5cf6;
-  --accent-light: #a78bfa;
-  --accent-dim: rgba(139, 92, 246, 0.1);
-  --accent-glow: rgba(139, 92, 246, 0.2);
+  --accent: #2563eb; /* single accent (electric blue) — taste-skill compliant */
+  --accent-light: #3b82f6;
+  --accent-dim: rgba(37, 99, 235, 0.1);
+  --accent-glow: rgba(37, 99, 235, 0.2);
   --muted: #4b5563;
   --success: #10b981;
   --error: #ef4444;
@@ -38,10 +38,10 @@
   --card: #27272a;
   --card-border: #3f3f46;
   --card-hover: #3f3f46;
-  --accent: #a78bfa;
-  --accent-light: #c4b5fd;
-  --accent-dim: rgba(167, 139, 250, 0.15);
-  --accent-glow: rgba(167, 139, 250, 0.3);
+  --accent: #60a5fa; /* accent lightens for dark-mode contrast */
+  --accent-light: #93c5fd;
+  --accent-dim: rgba(96, 165, 250, 0.15);
+  --accent-glow: rgba(96, 165, 250, 0.3);
   --muted: #a1a1aa;
   --success: #34d399;
   --error: #f87171;
@@ -730,7 +730,7 @@ body {
   align-items: center;
   gap: 12px;
   padding: 16px 24px;
-  background: linear-gradient(135deg, var(--accent-dim), rgba(139, 92, 246, 0.05));
+  background: linear-gradient(135deg, var(--accent-dim), rgba(37, 99, 235, 0.05));
   border: var(--border-width) solid var(--accent);
   border-radius: var(--radius);
   box-shadow: var(--shadow-brutal);
@@ -780,4 +780,65 @@ body {
   border-radius: var(--radius-sm);
   display: grid;
   gap: 12px;
+}
+
+/* ── Full-page Loading State ───────────────────────── */
+.state-loading {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+.spinner {
+  width: 26px;
+  height: 26px;
+  border: 3px solid var(--surface-2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.animate-spin { animation: spin 0.7s linear infinite; }
+
+/* ── Icon Button (theme toggle, icon-only actions) ─── */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  background: var(--surface-1);
+  color: var(--foreground);
+  border: var(--border-width) solid var(--card-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-brutal-sm);
+  cursor: pointer;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+.icon-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 3px 3px 0 var(--shadow-color);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.icon-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 0 0 0 var(--shadow-color);
+}
+.dark .icon-btn:hover {
+  box-shadow: 3px 3px 0 var(--shadow-color), 0 0 15px var(--accent-dim);
 }

@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "@/lib/auth-client";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const NAV_LINKS = [
   { href: "/dashboard",  label: "Dashboard" },
@@ -64,6 +65,7 @@ export default function Navbar() {
       </ul>
 
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <ThemeToggle />
         {!isPending && session ? (
           <>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
