@@ -1,21 +1,12 @@
 "use client";
 import { useEffect, useCallback, useRef, useState } from "react";
 import Navbar from "@/components/Navbar";
+import Toast, { type ToastType } from "@/components/Toast";
+import { IconPlus, IconWarning, IconX } from "@/components/Icons";
 
 const API = "http://127.0.0.1:8000";
 
 interface Company { company_id: number; company_name: string; }
-
-function Toast({ message, type = "accent", onDone }: { message: string; type?: "accent" | "success" | "error"; onDone: () => void }) {
-  useEffect(() => { const t = setTimeout(onDone, 3200); return () => clearTimeout(t); }, [onDone]);
-  const icon = type === "success" ? "✓" : type === "error" ? "✕" : "◆";
-  return (
-    <div className={`toast toast-${type}`}>
-      <div className="toast-icon">{icon}</div>
-      <span>{message}</span>
-    </div>
-  );
-}
 
 export default function CompaniesPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -23,7 +14,7 @@ export default function CompaniesPage() {
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: "accent" | "success" | "error" } | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [companyName, setCompanyName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -81,13 +72,17 @@ export default function CompaniesPage() {
             style={{ padding: "9px 20px", fontSize: "0.82rem", fontWeight: 700 }}
             onClick={openModal}
           >
-            + Add Company
+            <IconPlus size={15} /> Add Company
           </button>
         </div>
 
         <div className="app-divider" />
 
-        {error && <div className="state-error animate-fade-in-up">⚠ {error}</div>}
+        {error && (
+          <div className="state-error animate-fade-in-up" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <IconWarning size={15} /> {error}
+          </div>
+        )}
 
         {/* Loading skeletons */}
         {loading && (
@@ -139,7 +134,7 @@ export default function CompaniesPage() {
           <div className="modal-panel" style={{ maxWidth: 460 }}>
             <div className="modal-header">
               <h2 className="modal-title">Add Company</h2>
-              <button className="modal-close" onClick={() => { setModalOpen(false); setCompanyName(""); }}>✕</button>
+              <button className="modal-close" aria-label="Close" onClick={() => { setModalOpen(false); setCompanyName(""); }}><IconX size={15} /></button>
             </div>
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               <div className="field-group">
